@@ -1,0 +1,253 @@
+---
+title: "Internship Task"
+author: "Ryan Shihera Musasia"
+date: "2023-07-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Data Preparation
+
+```{r load-libraries-and-data}
+# Load required libraries
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+
+
+# load the data set from the provided CSV link into a data frame
+url <- "https://raw.githubusercontent.com/cema-uonbi/internship_task/main/data/cema_internship_task_2023.csv"
+data <- read.csv(url)
+```
+
+I have undertaken the initial steps of data preparation and loading of the data for analysis.
+
+Load Required Libraries: In this step, I have loaded several essential libraries that are necessary for performing data analysis and visualization in R. These libraries include tidyverse, ggplot2, and dplyr.
+
+> The `tidyverse package` is a collection of R packages designed for data manipulation and visualization, making data analysis tasks more efficient and user-friendly.
+
+> `ggplot2` is a powerful package for creating visually appealing and customizable data visualizations,
+
+> `dplyr` provides a set of functions that streamline data manipulation tasks.
+
+Load and Import the Data set: In this part, I loaded the data set from a provided CSV link into a data frame named `'data.'`
+
+### Data Inspection
+
+```{r data-manipulation-process}
+#Preview the first 5 rows
+head(data)
+
+# Preview the last 5 rows 
+tail(data)
+
+# Dimensions of the data
+dim(data)
+
+# Attributes of the data set
+attributes(data)
+
+# Summary statistics 
+summary(data)
+```
+
+In the above code, I performed a data manipulation process, which involves inspecting and summarizing the data set to gain a better understanding of its contents.
+
+Previewing the First 5 Rows: By using the head(data) command, we have displayed the first 5 rows of the data set. This is an initial step to get a glimpse of the data's structure and the kind of information it contains. Viewing the first few rows helps us identify the column names, data types, and the actual values present in the data set.
+
+Previewing the Last 5 Rows: Conversely, the tail(data) command allows us to see the last 5 rows of the data set. This complements the previous step and provides insight into the data set's end, helping us verify the continuity and completeness of the data.
+
+Dimensions of the Data: The dim(data) command displays the dimensions of the data set, showing the number of rows and columns it contains. Understanding the data set's size is crucial as it indicates the amount of information we have at our disposal for analysis.
+
+Attributes of the Data Set: The attributes(data) command provides information about the data set's attributes, such as the variable names, data types, and other metadata. This helps us know the essential characteristics of the data set and prepares us for further data processing.
+
+Summary Statistics: By using summary(data), we obtain summary statistics for each column in the data set. This includes measures such as the mean, median, minimum, maximum, and quartiles for numerical variables. Summary statistics give us an overview of the data distribution and provide insights into the central tendencies of the data set
+
+After completing the data manipulation process, I observed the presence of missing values denoted by the '<NA>' symbol, in the following columns; `Acute Malnutrition`, `stunted 6-23 months`, `stunted 0-\<6 months` & `stunted 24-59 months`, which will be addressed in the subsequent data handling steps. Managing missing data is crucial for ensuring the accuracy and reliability of our analysis, and we will apply appropriate techniques to handle these missing values appropriately.
+
+### Handling Missing Values
+
+```{r data-wrangling}
+# Handle missing values
+# Define a vector of column names for which you want to replace missing values with the median
+columns_to_replace <- c("Acute.Malnutrition", "stunted.6.23.months", "stunted.0..6.months", "stunted.24.59.months")
+
+# Calculate the median for each selected column
+medians <- sapply(data[columns_to_replace], median, na.rm = TRUE)
+
+# Replace missing values with the respective median using mutate
+data <- data %>%
+  mutate(across(all_of(columns_to_replace), ~ ifelse(is.na(.), medians[colnames(data) == cur_column()], .)))
+
+# preview to see if the changes are effected
+data
+```
+
+In the above code, I performed data wrangling, specifically handling missing values in the data set.
+
+I opted to replace the missing values in the selected columns with their respective median values. This decision was motivated by the observation of positively skewed data distribution in those columns. The median, being a robust measure of central tendency, is well-suited for handling skewed data. It represents the middle value and is less influenced by extreme outliers, making it a more appropriate choice for replacing missing values in such cases. Additionally, when dealing with non-normally distributed data, the median offers a more accurate representation of the typical value compared to the mean, which could be heavily influenced by extreme values. By using the median for missing value imputation, we can ensure the integrity of our data set and produce reliable results in our subsequent analyses.
+
+### Data Visualization for Insights
+
+```{r data-visualization}
+ggplot(data, aes(x = county, y = Total.Dewormed)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Dewormed by County", x = "County", y = "Total Dewormed") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1), 
+        axis.text.y = element_text(size = 8),   # Adjust the size of y-axis labels
+        plot.margin = unit(c(1, 4, 1, 1), "cm")) +   # Adjust margins (top, right, bottom, left)
+  coord_flip() +
+  theme_minimal()
+
+# Box plot to identify potential outliers in 'Acute Malnutrition' variable
+
+ggplot(data, aes(x = "", y = Acute.Malnutrition)) + geom_boxplot() + labs(title ="Distribution of Acute Malnutrition", x = "", y ="Acute Malnutrition")
+
+# Time series plot to observe trends in 'Total Deformed' over time
+
+# reorder the 'period' variable in descending order
+data$period <- reorder(data$period, desc(data$period))
+
+# Create the plot
+ggplot(data, aes(x = period, y = Total.Dewormed)) +
+  geom_line() +
+  labs(title = "Total Dewormed Over Time", x = "Period", y = "Total Dewormed") +
+  coord_flip()
+```
+
+The first bar graph depicting the Total Dewormed reveals that Nairobi, Kilifi, and Nakuru counties have the highest counts of children dewormed. This observation can be attributed to the presence of well-established health infrastructure in these counties, including health centers and medical personnel. The availability of such facilities and resources allows for effective outreach and coverage, enabling a larger number of children to receive deworming interventions in these specific counties. Consequently, the higher count of total dewormed in Nairobi, Kilifi, and Nakuru may reflect the successful implementation of health programs and the accessibility of healthcare services to the target population of children under five years.
+
+The box plot indicates that the distribution of "Acute Malnutrition" is positively skewed, as the median is closer to the lower end of the box.
+
+The final bar plot highlights the months of May, June, November, and December, which stand out with higher numbers of deworming activities. This observation could be attributed to the influence of seasonal variations in specific regions. During these months, certain health issues or diseases may become more prevalent due to changes in weather conditions. For example, cold and wet conditions during these months might create favorable environments for the proliferation of certain types of worms or parasites, leading to an increased need for deworming efforts. Overall, the data suggests that deworming activities are strategically emphasized during these specific months to address health challenges associated with seasonal patterns, ensuring the well-being of the target population of children under five years.
+
+## Research Question
+
+> **1. Can we identify any outliers or extreme values in the data for underweight prevalence, and what factors might explain these deviations?**
+
+## Data Analysis and Interpretation
+
+```{r}
+# Step 1: Calculate the prevalence of underweight children for each age group
+data <- data %>%
+  mutate(Total_Underweight = `Underweight.0..6.months` + `Underweight.6.23.months` + `Underweight.24.59.Months`,
+         Prevalence_Underweight = Total_Underweight / `Total.Dewormed`)
+
+# Step 2: Explore the distribution of underweight prevalence using summary statistics and data visualization
+summary(data$Prevalence_Underweight)
+ggplot(data, aes(x = county, y = Prevalence_Underweight)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Underweight Prevalence by County", x = "County", y = "Underweight Prevalence") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Adjust angle and position of x-axis labels
+
+# Step 3: Identify potential outliers or extreme values
+outliers <- data %>%
+  filter(Prevalence_Underweight > 1.5 * IQR(Prevalence_Underweight, na.rm = TRUE) | 
+         Prevalence_Underweight < 0.5 * IQR(Prevalence_Underweight, na.rm = TRUE))
+
+# Step 4: Investigate potential factors that might explain the outliers
+outliers_and_factors <- outliers %>%
+  select(county, Prevalence_Underweight, starts_with("Possible_Factors"))
+
+# Step 5: Count the number of outliers per county and visualize
+outlier_count_per_county <- outliers %>%
+  group_by(county) %>%
+  summarize(Outlier_Count = n())
+
+ggplot(outlier_count_per_county, aes(x = county, y = Outlier_Count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Number of Outliers per County", x = "County", y = "Outlier Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Adjust angle and position of x-axis labels
+```
+
+The possibility of outliers in the prevalence of underweight children (Prevalence_Underweight) can be influenced by various factors and contexts.
+
+The counties with the most outliers (25+) are `Kiambu`, `Meru`, `Migori`, `Nandi`, `Narok`, `Nyeri`this can be attributed to
+
+Data Entry Errors: Outliers can sometimes occur due to data entry errors or data quality issues. For instance, a data entry mistake in recording the number of underweight children could lead to unusually high or low prevalence values.
+
+Also, consider the following scenarios:
+
+Counties may have experienced a severe drought during the survey period, leading to food scarcity and higher underweight prevalence compared to other counties
+
+Counties implemented an innovative nutrition program that successfully reduced underweight cases, resulting in a lower prevalence compared to neighboring counties.
+
+> **2. Is there a relationship between the prevalence of acute malnutrition and the prevalence of stunted children (in different age groups) in specific counties?**
+
+## Data Analysis and Interpretation
+
+```{r}
+# Step 1: Calculate the prevalence of acute malnutrition and stunted children for each age group
+data <- data %>%
+  mutate(Total_Stunted = `stunted.0..6.months` + `stunted.6.23.months` + `stunted.24.59.months`,
+         Prevalence_Acute_Malnutrition = `Acute.Malnutrition` / `Total.Dewormed`,
+         Prevalence_Stunted = Total_Stunted / `Total.Dewormed`)
+
+# Step 2: Explore the relationship between the prevalence of acute malnutrition and stunted children using data visualization
+ggplot(data, aes(x = Prevalence_Acute_Malnutrition, y = Prevalence_Stunted)) +
+  geom_point() +
+  labs(title = "Relationship between Acute Malnutrition and Stunted Children",
+       x = "Prevalence of Acute Malnutrition",
+       y = "Prevalence of Stunted Children") +
+  theme_minimal()
+
+# Step 3: Perform statistical analysis to quantify the relationship between the two variables
+correlation_coefficient <- cor(data$Prevalence_Acute_Malnutrition, data$Prevalence_Stunted, use = "complete.obs")
+p_value <- cor.test(data$Prevalence_Acute_Malnutrition, data$Prevalence_Stunted, method = "pearson")$p.value
+
+print(paste("Correlation Coefficient:", correlation_coefficient))
+print(paste("P-value:", p_value))
+```
+
+The provided analysis presents the results of the correlation study between the prevalence of acute malnutrition and the prevalence of stunted children in specific counties.
+
+The correlation coefficient, calculated as approximately 0.185, indicates the strength and direction of the linear relationship between the two variables. A positive correlation coefficient (closer to 1) suggests that as the prevalence of acute malnutrition increases in a county, the prevalence of stunted children also tends to increase, and vice versa. However, the correlation is relatively weak, as the coefficient is close to 0. A correlation coefficient of 0 would signify no linear relationship between the two variables.
+
+The p-value, estimated to be extremely small (approximately 5.06e-12), signifies the statistical significance of the correlation coefficient. A small p-value (typically less than 0.05) provides strong evidence against the null hypothesis, indicating that there is a real relationship between the prevalence of acute malnutrition and stunted children in specific counties. In other words, the observed correlation is unlikely to be a result of random chance.
+
+In conclusion, the output suggests a statistically significant, yet relatively weak, positive correlation between the prevalence of acute malnutrition and the prevalence of stunted children in the analyzed data set. This information provides valuable insights into the potential relationship between these variables in specific counties, allowing for a better understanding of health-related issues and informing potential intervention strategies.
+
+This could be due to various factors such as:
+
+> Diverse Socioeconomic Factors: Counties with different socioeconomic backgrounds may experience varying degrees of malnutrition and stunting prevalence. For instance, counties with high poverty rates might have limited access to nutritious food, leading to both higher malnutrition and stunting rates.
+
+> Geographic and Environmental Factors: Geographical variations, such as climate and terrain, can impact agricultural productivity and food availability. Counties facing drought or inadequate agricultural practices may experience higher malnutrition and stunting rates.
+
+> Healthcare Access and Quality: Disparities in healthcare access and the quality of healthcare services can affect child health outcomes. Counties with better healthcare facilities and maternal health programs might see reduced malnutrition and stunting rates due to early interventions.
+
+## Calculate the correlation between Prevalence Underweight and Prevalence Stunted:
+
+```{r}
+# Calculate the correlation coefficient between "Prevalence_Underweight" and "Prevalence_Stunted" in specific counties
+correlation <- data %>%
+  group_by(county) %>%
+  summarize(Correlation = cor(Prevalence_Underweight, Prevalence_Stunted, use = "complete.obs"))%>%
+  arrange(desc(Correlation))  # Arrange the results in descending order of correlation
+
+# Print the results
+print(correlation)
+
+```
+
+```{r}
+# Create a scatter plot to visualize the relationship between "Prevalence_Underweight" and "Prevalence_Stunted"
+ggplot(data, aes(x = Prevalence_Underweight, y = Prevalence_Stunted, color = county)) +
+  geom_point() +
+  labs(title = "Relationship between Underweight and Stunted Prevalence by County",
+       x = "Prevalence of Underweight Children",
+       y = "Prevalence of Stunted Children",
+       color = "County") +
+  theme_minimal()
+
+```
+
+In the table, the counties are listed along with their corresponding correlation coefficients. The correlation coefficients are all positive and range from 0.881 to 0.957. This suggests that there is a positive linear relationship between the prevalence of underweight children and the prevalence of stunted children in these counties.
+
+The reason for the positive correlation could be that both underweight and stunting are indicators of child malnutrition, and they may share common risk factors. For example, counties with limited access to nutritious food, inadequate healthcare facilities, and poor sanitation conditions may have higher prevalence rates for both underweight and stunted children.
+
+It is essential to note that correlation does not imply causation. The positive correlation observed in the table indicates an association between the two variables, but it does not necessarily mean that one variable causes the other. Other factors and confounding variables may also be influencing the observed relationship. Further analysis, such as regression modeling and considering potential confounding factors, would be necessary to establish causality.
+
+Thank you!
