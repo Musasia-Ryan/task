@@ -124,6 +124,22 @@ The box plot indicates that the distribution of "Acute Malnutrition" is positive
 
 The final bar plot highlights the months of May, June, November, and December, which stand out with higher numbers of deworming activities. This observation could be attributed to the influence of seasonal variations in specific regions. During these months, certain health issues or diseases may become more prevalent due to changes in weather conditions. For example, cold and wet conditions during these months might create favorable environments for the proliferation of certain types of worms or parasites, leading to an increased need for deworming efforts. Overall, the data suggests that deworming activities are strategically emphasized during these specific months to address health challenges associated with seasonal patterns, ensuring the well-being of the target population of children under five years.
 
+## Geographcal Visualization 
+
+```{r}
+
+# read shapefile
+data <- st_read("C:/Users/user/Documents/R/task/shapefiles/County.shx")
+
+# view attributes
+print(data)
+
+
+# plot shapefile
+plot(data,col='blue') #you can remove the col = red if you dont want color on the map
+```
+
+
 ## Research Question
 
 > **1. Can we identify any outliers or extreme values in the data for underweight prevalence, and what factors might explain these deviations?**
