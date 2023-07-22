@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
+library(sf)
 
 
 # load the data set from the provided CSV link into a data frame
